@@ -1,0 +1,59 @@
+name: sveltekit
+type: service
+from: node
+fromVersionConstraint: "^2.0.0"
+fromVersion: "2.1.3"
+guidance: GUIDANCE.md
+title: Node.js (SvelteKit)
+labels:
+- sveltekit
+- svelte
+- node
+
+env:
+- name: WORKSPACE_NODE_COMMAND
+  value: workspace-node vite-start
+- name: NODE_ENV
+  value: production
+  envType: dev
+# Wodby's gateway terminates TLS, keeps the original Host header and sets
+# X-Forwarded-Proto and X-Forwarded-For. adapter-node builds each request's
+# origin from the Host header and this protocol header, so url.origin and the
+# CSRF check of form actions match every domain of the environment. A fixed
+# origin (paths.origin) would be set at build time and allow only one domain.
+- name: PROTOCOL_HEADER
+  value: x-forwarded-proto
+# getClientAddress() returns the address the gateway appended to
+# X-Forwarded-For, the right-most one, which a client cannot forge.
+- name: ADDRESS_HEADER
+  value: x-forwarded-for
+- name: XFF_DEPTH
+  value: '1'
+# Seconds adapter-node waits for open requests after SIGTERM before it closes
+# their connections; below the Node.js service's 30 second grace period, so
+# the sveltekit:shutdown event runs before the container is killed.
+- name: SHUTDOWN_TIMEOUT
+  value: '25'
+
+build:
+  dockerfile: Dockerfile
+  # The default build context, plus the build output and SvelteKit's
+  # generated files, which the image build creates anew.
+  dockerignoreContent: |
+    .git
+    .gitignore
+    .dockerignore
+    .wodby-ci-cache
+    build
+    .svelte-kit
+  connect: true
+  boilerplates:
+  - name: sveltekit
+    title: SvelteKit Boilerplate
+    repo: https://github.com/wodby/sveltekit-boilerplate
+    branch: main
+
+workspace:
+  reload: watch
+  # Build output of adapter-node and the files SvelteKit generates.
+  ignore: ['/build/', '/.svelte-kit/']
