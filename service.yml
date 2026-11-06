@@ -2,7 +2,7 @@ name: sveltekit
 type: service
 from: node
 fromVersionConstraint: "^2.0.0"
-fromVersion: "2.2.0"
+fromVersion: "2.2.1"
 guidance: GUIDANCE.md
 title: Node.js (SvelteKit)
 labels:
